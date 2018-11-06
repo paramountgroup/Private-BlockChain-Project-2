@@ -48,7 +48,7 @@ class Blockchain {
 
     async verifyGenesisBlock() {
 
-        const height = await this.getBlockHeight();
+        const height = await this.getChainHeight();
 
         if (height === 0) {
             let genesisBlock = new Block("First Block - Genesis Block")
@@ -68,7 +68,7 @@ class Blockchain {
     async addBlock(newBlock) {
         // Block height
 
-        newBlock.height = await this.getBlockHeight();
+        newBlock.height = await this.getChainHeight();
 
         // UTC timestamp
 
@@ -90,8 +90,24 @@ class Blockchain {
 
 
 
-    // Find the number of Blocks in the blockchain
+    // Find the height of the last block per submission requirements
     getBlockHeight() {
+        return new Promise((resolve, reject) => {
+            let i = -1;
+            // Read the entire blockchain and count the blocks
+            db.createReadStream()
+                .on('data', data => {
+                    i++;
+                })
+                .on('error', err => reject(err))
+                .on('close', () => {
+                    resolve(i);
+                });
+        });
+    }
+	
+	  // Find the number of Blocks in the blockchain
+    getChainHeight() {
         return new Promise((resolve, reject) => {
             let i = 0;
             // Read the entire blockchain and count the blocks
@@ -101,12 +117,12 @@ class Blockchain {
                 })
                 .on('error', err => reject(err))
                 .on('close', () => {
-
-
                     resolve(i);
                 });
         });
     }
+	
+	
     // Return a requested block from the blockchain using blockHeight as the key in the database
     async getBlock(blockHeight) {
         try {
@@ -144,8 +160,8 @@ class Blockchain {
     async validateChain() {
         // save errors in array
         let errorLog = [];
-        let blockHeight = await this.getBlockHeight();
-        console.log("validateChain blockHeight is: " + blockHeight);
+        let blockHeight = await this.getChainHeight();
+        console.log("validateChain number of blocks are: " + blockHeight);
         let i = 0;
         do {
             // validate block
