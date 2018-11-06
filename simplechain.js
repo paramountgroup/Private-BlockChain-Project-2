@@ -17,8 +17,6 @@ const chainDB = './chaindata';
 const db = level(chainDB);
 
 
-
-
 /* ===== Block Class ==============================
 |  Class with a constructor for block 			   |
 |  ===============================================*/
@@ -43,14 +41,8 @@ class Blockchain {
         this.verifyGenesisBlock();
     }
 
-
-
-
     async verifyGenesisBlock() {
-
         const height = await this.getBlockHeight();
-		console.log
-
         if (height === (-1)) {
             let genesisBlock = new Block("First Block - Genesis Block")
             // UTC timestamp
@@ -63,33 +55,23 @@ class Blockchain {
         }
     }
 
-
-
     // Add new block to blockchain
     async addBlock(newBlock) {
         // Block height
-
         let prevBlockHeight = await this.getBlockHeight();
-		newBlock.height = prevBlockHeight + 1;
-		console.log(" in addblock prevBlockHeight is: " + prevBlockHeight);
-		console.log(" in addblock newBlock.height is: " + newBlock.height);
-
+        newBlock.height = prevBlockHeight + 1;
         // UTC timestamp
-
         newBlock.time = new Date().getTime().toString().slice(0, -3);
         // previous block hash
         if (newBlock.height > 0) {
             let prevBlock = await this.getBlock(prevBlockHeight);
-
             newBlock.previousBlockHash = prevBlock.hash;
-
         }
         // Block hash with SHA256 using newBlock and converting to a string
         newBlock.hash = SHA256(JSON.stringify(newBlock)).toString();
         // Adding block object to chain
 
         await addDataToLevelDB(newBlock); // add the new block
-
     }
 
 
@@ -109,9 +91,8 @@ class Blockchain {
                 });
         });
     }
-	
-	
-	
+
+
     // Return a requested block from the blockchain using blockHeight as the key in the database
     async getBlock(blockHeight) {
         try {
@@ -173,16 +154,16 @@ class Blockchain {
         //validate last block does not have next block to validate previous hash
         let validBlock = await this.validateBlock(i);
         if (!validBlock) errorLog.push(i);
-		// if errors detected send to console
+        // if errors detected send to console
         if (errorLog.length > 0) {
             console.log('Block errors = ' + errorLog.length);
             console.log('Blocks: ' + errorLog);
+            return false;
         } else {
             console.log('No errors detected');
+            return true;
         }
     }
-
-
 }
 /*============================================================================================
 * getLevelDBData returns the requested block object using blockheight as the key for lookup
@@ -208,8 +189,6 @@ function getLevelDBData(key) {
 function addLevelDBData(key, value) {
     //place new block in Level db using blockHeight as key and JSON.stringify the block object
     db.put(key, JSON.stringify(value), function (err) {
-
-
         if (err) return console.log('Block ' + key + ' submission failed', err);
     });
 }
@@ -236,7 +215,7 @@ let testBlockChain = new Blockchain();
 
 // Loop 3 times creating blocks and then validate the chain
 (function theLoop(i) {
-    setTimeout(function () {
+    setTimeout(async function () {
         console.log("create block in the loop for testing block #: " + i);
         let blockTest = new Block("Test Block - " + (i + 1));
         testBlockChain.addBlock(blockTest);
@@ -244,7 +223,8 @@ let testBlockChain = new Blockchain();
         if (i < 3) {
             theLoop(i)
         } else {
-            testBlockChain.validateChain();
+            let validBlockChain = await testBlockChain.validateChain();
+            console.log("This is a valid blockchain? " + validBlockChain);
         }
     }, 10000);
 })(0);
