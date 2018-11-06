@@ -48,9 +48,10 @@ class Blockchain {
 
     async verifyGenesisBlock() {
 
-        const height = await this.getChainHeight();
+        const height = await this.getBlockHeight();
+		console.log
 
-        if (height === 0) {
+        if (height === (-1)) {
             let genesisBlock = new Block("First Block - Genesis Block")
             // UTC timestamp
             genesisBlock.time = new Date().getTime().toString().slice(0, -3);
@@ -68,14 +69,17 @@ class Blockchain {
     async addBlock(newBlock) {
         // Block height
 
-        newBlock.height = await this.getChainHeight();
+        let prevBlockHeight = await this.getBlockHeight();
+		newBlock.height = prevBlockHeight + 1;
+		console.log(" in addblock prevBlockHeight is: " + prevBlockHeight);
+		console.log(" in addblock newBlock.height is: " + newBlock.height);
 
         // UTC timestamp
 
         newBlock.time = new Date().getTime().toString().slice(0, -3);
         // previous block hash
         if (newBlock.height > 0) {
-            let prevBlock = await this.getBlock(newBlock.height - 1);
+            let prevBlock = await this.getBlock(prevBlockHeight);
 
             newBlock.previousBlockHash = prevBlock.hash;
 
@@ -106,21 +110,6 @@ class Blockchain {
         });
     }
 	
-	  // Find the number of Blocks in the blockchain
-    getChainHeight() {
-        return new Promise((resolve, reject) => {
-            let i = 0;
-            // Read the entire blockchain and count the blocks
-            db.createReadStream()
-                .on('data', data => {
-                    i++;
-                })
-                .on('error', err => reject(err))
-                .on('close', () => {
-                    resolve(i);
-                });
-        });
-    }
 	
 	
     // Return a requested block from the blockchain using blockHeight as the key in the database
@@ -160,8 +149,8 @@ class Blockchain {
     async validateChain() {
         // save errors in array
         let errorLog = [];
-        let blockHeight = await this.getChainHeight();
-        console.log("validateChain number of blocks are: " + blockHeight);
+        let lastBlockHeight = await this.getBlockHeight();
+        console.log("validateChain number of blocks are: " + (lastBlockHeight + 1));
         let i = 0;
         do {
             // validate block
@@ -180,7 +169,7 @@ class Blockchain {
             if (blockHash !== previousHash) {
                 errorLog.push(i);
             }
-        } while (i < blockHeight - 1);
+        } while (i < lastBlockHeight);
         //validate last block does not have next block to validate previous hash
         let validBlock = await this.validateBlock(i);
         if (!validBlock) errorLog.push(i);
