@@ -11,7 +11,6 @@ const SHA256 = require('crypto-js/sha256');
 |  Learn more: level: https://github.com/Level/level     |
 |  =============================================================*/
 
-//const levelsandbox = require('./levelsandbox')
 const level = require('level');
 const chainDB = './chaindata';
 const db = level(chainDB);
