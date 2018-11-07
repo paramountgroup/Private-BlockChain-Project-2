@@ -15,7 +15,6 @@ const level = require('level');
 const chainDB = './chaindata';
 const db = level(chainDB);
 
-
 /* ===== Block Class ==============================
 |  Class with a constructor for block 			   |
 |  ===============================================*/
@@ -74,7 +73,6 @@ class Blockchain {
     }
 
 
-
     // Find the height of the last block per submission requirements
     getBlockHeight() {
         return new Promise((resolve, reject) => {
@@ -124,6 +122,7 @@ class Blockchain {
             return false;
         }
     }
+    
 
     // Validate blockchain
     async validateChain() {
@@ -135,17 +134,16 @@ class Blockchain {
         do {
             // validate block
             let validBlock = await this.validateBlock(i);
-
             if (!validBlock) errorLog.push(i);
-            // compare blocks hash link
+            // Retrieve current block and nextBlock then compare hash and previousHash to validate chain
             let block = await this.getBlock(i);
-
             let blockHash = block.hash;
-            let previousBlock = await this.getBlock(i + 1);
-            let previousHash = previousBlock.previousBlockHash;
+            let nextBlock = await this.getBlock(i + 1);
+            let previousHash = nextBlock.previousBlockHash;
             console.log("in validateChain and blockHash block: " + i + " is: " + blockHash);
             console.log("in validateChain and previousHash for block: " + (i + 1) + " is: " + previousHash);
             i++;
+            // verify current blockHash block is same as previousHash in nextBlock
             if (blockHash !== previousHash) {
                 errorLog.push(i);
             }
