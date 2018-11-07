@@ -143,7 +143,7 @@ class Blockchain {
             console.log("in validateChain and blockHash block: " + i + " is: " + blockHash);
             console.log("in validateChain and previousHash for block: " + (i + 1) + " is: " + previousHash);
             i++;
-            // verify current blockHash block is same as previousHash in nextBlock
+            // verify current blockHash in the current block is same as previousHash in nextBlock
             if (blockHash !== previousHash) {
                 errorLog.push(i);
             }
